@@ -54,9 +54,11 @@ class Particle:
         win.blit(surface, (self.pos.x, self.pos.y))
 
 class Sensor:
-    def __init__(self,start=(0,0),end=(0,0)):
+    def __init__(self,img,start=(0,0),end=(0,0)):
         self.start = start
         self.end = end
+        self.img_width = img.get_width()
+        self.img_height = img.get_height()
 
     def set_start(self, start):
         self.start = start
@@ -121,24 +123,25 @@ class Sensor:
         self.start = (start_x,start_y)
         self.end = (end_x,end_y)
     
-    def calculate_line_left_top(self, img,x,y,angle):
+    def calculate_line_left_top(self,x,y,angle):
         length = 300
-        offset_from_center = img.get_height() // 2  # Distance from center to front
+        
+        center = vec2(x + self.img_width/2, y + self.img_height/2)
 
-        # Get the center of the car (rotation point)
-        center_x = x + img.get_width() // 2
-        center_y = y + img.get_height() // 2
+        offset = vec2(self.img_width / 2, -self.img_height/2)
 
-        # Compute the front (headlight) position based on the angle
-        start_x = center_x + math.sin(math.radians(angle))
-        start_y = center_y - offset_from_center * math.cos(math.radians(angle))
+        rotated_offset = offset.rotate(-angle)
 
-        # Compute the end of the line further in the same direction
-        end_x = start_x + length * math.sin(math.radians(angle))
-        end_y = start_y + length * math.cos(math.radians(angle))
+        start = center + rotated_offset
 
-        self.start = (start_x,start_y)
-        self.end = (end_x,end_y)
+        
+        direction = vec2(1,0).rotate(-angle-30)
+
+        end = start + direction* length
+
+        self.start = (start.x,start.y)
+        self.end = (end.x,end.y)
+
     
     def distance(self, col_point):
         start_x, start_y = self.start
@@ -187,7 +190,7 @@ class AbstractCar:
         self.angle = 0
         self.x, self.y = start_pos
         self.start_pos = start_pos
-        self.sensors = [Sensor(),Sensor(),Sensor(),Sensor()]
+        self.sensors = [Sensor(self.img),Sensor(self.img),Sensor(self.img),Sensor(self.img)]
         self.particles = []
 
         #drifting
@@ -196,7 +199,7 @@ class AbstractCar:
         self.direction = vec2(1, 0)  # Forward facing direction
         self.acceleration = 0.2
         self.friction = 0.98
-        self.drift_factor = 1# Lower = less drift, 1 = more drift
+        self.drift_factor = 0.98# Lower = less drift, 1 = more drift
 
         self.accelerate = False
         self.brake = False
@@ -306,7 +309,7 @@ class AbstractCar:
         self.sensors[0].calculate_line(self.img,self.x,self.y,self.angle)
         self.sensors[1].calculate_line_left_side(self.img,self.x,self.y,self.angle)
         self.sensors[2].calculate_line_right_side(self.img,self.x,self.y,self.angle)
-        #self.sensors[3].calculate_line_left_top(self.img,self.x,self.y,self.angle)
+        self.sensors[3].calculate_line_left_top(self.x,self.y,self.angle)
 
 
 
