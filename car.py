@@ -7,11 +7,12 @@ from utils import draw_rotate_car
 
 
 BORDER_COLOUR = (255, 255, 255) # border colour for collision
+GATE_REWARD = 1000000
 
 
 
 class AbstractCar:
-    def __init__(self, max_vel, rotation_vel, start_pos, car_image,game_map,drift_mode=False):
+    def __init__(self, max_vel, rotation_vel, start_pos, car_image,game_map,reward_gates=None,drift_mode=False):
         self.img = car_image
         self.game_map = game_map
         self.width = car_image.get_size()[0]
@@ -43,6 +44,8 @@ class AbstractCar:
         self.distance = 0
         self.time = 0
         self.alive = True
+        self.reward_gates = reward_gates
+        self.gates_passed = 0
 
     def is_alive(self):
         return self.alive
@@ -63,12 +66,31 @@ class AbstractCar:
         self.move()
 
     def get_reward(self):
-        return self.distance
+        reward = 0
+        if self.reward_gates_collision():
+            reward += GATE_REWARD
+
+        reward += self.distance
+        if self.distance < 20:
+            reward -= 1000
+
+        return reward
     
+    def reward_gates_collision(self):
+        car_rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        
 
+        if car_rect.clipline(self.reward_gates[self.gates_passed % 12]):
+                self.gates_passed += 1
 
+                return True
+        
+        
+        return False
+
+        
             
-    def move2(self):
+    def move(self):
         # computing where the car is facing (-angle because pygame and me are treating angles differently)
         forward = vec2(1, 0).rotate(-self.angle)
 
@@ -91,7 +113,7 @@ class AbstractCar:
         self.x, self.y = self.position.x, self.position.y
 
         # update distance and time
-        self.distance += self.vel
+        self.distance += self.velocity.length()
         self.time += 1
     
     #returns distances of sensors between car and collision points
@@ -103,7 +125,7 @@ class AbstractCar:
         return distances 
 
     
-    def move(self):
+    def move2(self):
         
         if self.accelerate:
             self.vel = min(self.vel + self.acceleration, self.max_vel)

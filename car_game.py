@@ -33,12 +33,13 @@ BORDER_COLOUR = (255, 255, 255) # Border colour for collision
 
 START = (WIDTH//2, 500) # starting position
 FPS = 60
+positions = [((1616, 1181), (1825, 1333)), ((1935, 748), (2184, 670)),((1606, 373), (1684, 163)), ((1027, 383), (879, 189)), ((477, 566), (263, 463)), ((347, 724), (196, 920)), ((396, 1490), (567, 1275))]
+
 
 
 # initializing car
 def place_car(pos):
-    print(pos)
-    return PlayerCar(CAR_SPEED,4,pos,CAR, TRACK)
+    return PlayerCar(CAR_SPEED,4,pos,CAR, TRACK, positions)
 
 # car update (moving, car collision, line collision)
 def update(car):
@@ -50,6 +51,11 @@ def update(car):
 def reset_cars(car):
     for car in cars:
         car.reset()
+
+def make_gate(positions):
+    for position in positions:
+        pygame.draw.line(WIN, (0, 255, 255), (position[0]), (position[1]), 2)
+
 
 run =  True
 clock = pygame.time.Clock()
@@ -74,15 +80,25 @@ while run:
             text = my_font.render("DEAD",False,(255, 0, 0))
             WIN.blit(text, (0, 25 * 10))
 
+        if car.reward_gates_collision():
+            text = my_font.render("TOUCHING",False,(240, 0, 0))
+            WIN.blit(text, (0, 25 * 15))
+        else:
+            text = my_font.render("NOT TOUCHING",False,(240, 70, 0))
+            WIN.blit(text, (0, 25 * 15))
+
+
+
 
         update(car)
-
+    make_gate(positions)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
             break
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = pygame.mouse.get_pos()
+            print((x,y))
             cars.append(place_car((x,y)))
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
@@ -91,5 +107,5 @@ while run:
     
     pygame.display.update()
 
-
+print(positions)
 pygame.quit()

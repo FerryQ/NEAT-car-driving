@@ -16,11 +16,12 @@ CAR = scale_image(pygame.image.load("images/car2.png").convert_alpha(), 0.4) # c
 CAR_SIZE_X, CAR_SIZE_Y = CAR.get_size() # car size
 CAR_SPEED = 8 # car speed
 
+REWARD_GATES = [((1315, 1287),(1394, 1462)),((1616, 1181), (1825, 1333)), ((1935, 748), (2184, 670)),((1606, 373), (1684, 163)), ((1027, 383), (879, 189)), ((477, 566), (263, 463)), ((72, 742),(312, 685)),((186, 1167),(437, 1009)),((219, 1247),(437, 1159)),((201, 1027),(425, 915))]
+
 
 
 #TEXT
-pygame.font.init() # you have to call this at the start, 
-                   # if you want to use this module.
+pygame.font.init()
 my_font = pygame.font.SysFont('Comic Sans MS', 30)
 
 
@@ -35,7 +36,9 @@ FPS = 60
 CURRENT_GENERATION = 0
 
 
-
+def make_gate(positions):
+    for position in positions:
+        pygame.draw.line(WIN, (0, 255, 255), (position[0]), (position[1]), 2)
 
 def apply_output_to_car(car,output):
     steer_left, steer_right, accelerate = output
@@ -48,9 +51,11 @@ def apply_output_to_car(car,output):
         car.start_accel() 
     else:
         car.release_pedals()
+
+    
 def get_inputs_for_network(car):
     distances = car.get_distance()
-    return distances + [car.vel, car.angle]
+    return distances + [car.velocity.length(), car.angle]
 
 def eval_genomes(genomes, config):
     nets = []
@@ -58,7 +63,7 @@ def eval_genomes(genomes, config):
     for genome_id, genome in genomes:
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         nets.append(net)
-        car = PlayerCar(CAR_SPEED, 4, START, CAR, TRACK)
+        car = PlayerCar(CAR_SPEED, 4, START, CAR, TRACK, REWARD_GATES)
         cars.append(car)
         genome.fitness = 0
 
@@ -98,6 +103,8 @@ def eval_genomes(genomes, config):
             run = False
         if timer > 1000:
             run =  False
+        
+        
 
 
         WIN.fill((0,0,0));
@@ -105,6 +112,8 @@ def eval_genomes(genomes, config):
         for car in cars:
             if car.is_alive():
                 car.draw(WIN)
+
+        make_gate(REWARD_GATES)
         
         # Display Info
         text = my_font.render("Generation: " + str(CURRENT_GENERATION), True, (0,0,0))

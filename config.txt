@@ -1,7 +1,7 @@
 [NEAT]
 fitness_criterion     = max
 fitness_threshold     = 100000000
-pop_size              = 50
+pop_size              = 65
 reset_on_extinction   = True
 
 [DefaultStagnation]
@@ -55,8 +55,8 @@ node_delete_prob        = 0.2
 num_hidden              = 0
 # 5 sensors
 num_inputs              = 7
-#  steer_left, steer_right, accelerate
-num_outputs             = 3 
+#  steer_left, steer_right, accelerate, break
+num_outputs             = 3
 
 # node response options
 response_init_mean      = 1.0
