@@ -38,13 +38,14 @@ FPS = 60
 # initializing car
 def place_car(pos):
     print(pos)
-    return PlayerCar(CAR_SPEED,4,pos,CAR)
+    return PlayerCar(CAR_SPEED,4,pos,CAR, TRACK)
 
 # car update (moving, car collision, line collision)
 def update(car):
+    car.update()
     cu.move_player(car)
-    cu.car_collision(WIN,car,TRACK)
-    cu.line_collision(WIN,car,my_font,TRACK)
+    #cu.car_collision(WIN,car,TRACK)
+    #cu.line_collision(WIN,car,my_font,TRACK)
 
 def reset_cars(car):
     for car in cars:
@@ -66,6 +67,14 @@ while run:
 
     for car in cars:
         car.draw(WIN)
+        if car.is_alive():
+            text = my_font.render("ALIVE",False,(0, 255, 0))
+            WIN.blit(text, (0, 25 * 10))
+        else:
+            text = my_font.render("DEAD",False,(255, 0, 0))
+            WIN.blit(text, (0, 25 * 10))
+
+
         update(car)
 
     for event in pygame.event.get():

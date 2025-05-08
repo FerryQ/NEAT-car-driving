@@ -32,16 +32,10 @@ BORDER_COLOUR = (255, 255, 255) # Border colour for collision
 START = (1138, 1388)# starting position
 FPS = 60
 
-def update(car):
-    # Move the car
-    car.update()
-
-    # Collision with border/track
-    cu.car_collision(WIN, car, TRACK)
+CURRENT_GENERATION = 0
 
 
-    # update distance traveled or checkpoints
-    cu.line_collision(WIN, car, my_font, TRACK)
+
 
 def apply_output_to_car(car,output):
     steer_left, steer_right, accelerate = output
@@ -51,13 +45,12 @@ def apply_output_to_car(car,output):
     if steer_right > 0.5:
         car.rotate(right=True)
     if accelerate > 0.5:
-        car.start_accel()
+        car.start_accel() 
     else:
         car.release_pedals()
-
 def get_inputs_for_network(car):
-    distances = car.get_distances()
-    return distances + [car.velocity, car.angle]
+    distances = car.get_distance()
+    return distances + [car.vel, car.angle]
 
 def eval_genomes(genomes, config):
     nets = []
@@ -65,27 +58,88 @@ def eval_genomes(genomes, config):
     for genome_id, genome in genomes:
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         nets.append(net)
-        car = PlayerCar(CAR_SPEED, 4, START, CAR)
+        car = PlayerCar(CAR_SPEED, 4, START, CAR, TRACK)
         cars.append(car)
         genome.fitness = 0
 
+    global CURRENT_GENERATION
+    CURRENT_GENERATION += 1
+
     run = True
+    timer = 0
+    clock = pygame.time.Clock()
+
     while run:
-        for car in cars:
-            inputs = car.get_distances()
-            output = net.activate(inputs)
+        clock.tick(FPS)
+        alive_counter = 0 # how many cars are alive
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit(0)
+
+        for i,car in enumerate(cars):
+            inputs = get_inputs_for_network(car)
+            output = nets[i].activate(inputs)
 
             apply_output_to_car(car, output)
-            update(car)
 
-        if car.is_alive():
+            if car.is_alive():
+                alive_counter += 1
+                genomes[i][1].fitness += car.get_reward()
+                car.update()
+
+
+        
+
+
+        timer += 1
+
+        if alive_counter == 0:
             run = False
-            break
+        if timer > 1000:
+            run =  False
 
-        # Check for collision
-        if car.crashed:
-            run = False
 
-        # Reward progress (distance or time survived)
-        genome.fitness += 1
+        WIN.fill((0,0,0));
+        WIN.blit(TRACK,(0,0))
+        for car in cars:
+            if car.is_alive():
+                car.draw(WIN)
+        
+        # Display Info
+        text = my_font.render("Generation: " + str(CURRENT_GENERATION), True, (0,0,0))
+        text_rect = text.get_rect()
+        text_rect.center = (900, 450)
+        WIN.blit(text, text_rect)
 
+        text_surface = my_font.render(str(timer),False,(255,0,0))
+        WIN.blit(text_surface,(1200,850))
+
+        pygame.display.flip()
+
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+    
+    # Load Config
+    config_path = "./config.txt"
+    config = neat.config.Config(neat.DefaultGenome,
+                                neat.DefaultReproduction,
+                                neat.DefaultSpeciesSet,
+                                neat.DefaultStagnation,
+                                config_path)
+
+    # Create Population And Add Reporters
+    population = neat.Population(config)
+    population.add_reporter(neat.StdOutReporter(True))
+    stats = neat.StatisticsReporter()
+    population.add_reporter(stats)
+    
+    # Run Simulation For A Maximum of 1000 Generations
+    population.run(eval_genomes, 1000)

@@ -11,8 +11,9 @@ BORDER_COLOUR = (255, 255, 255) # border colour for collision
 
 
 class AbstractCar:
-    def __init__(self, max_vel, rotation_vel, start_pos, car_image,drift_mode=False):
+    def __init__(self, max_vel, rotation_vel, start_pos, car_image,game_map,drift_mode=False):
         self.img = car_image
+        self.game_map = game_map
         self.width = car_image.get_size()[0]
         self.height = car_image.get_size()[1]
 
@@ -55,8 +56,15 @@ class AbstractCar:
             self.angle -= self.rotation_vel
     
     def update(self):
-        self.collide2()
+        self.collide2(self.game_map) #car and map collision
+        for sensor in self.sensors:
+            sensor.line_collide(self.game_map) # calculates where the line and border collides
+
         self.move()
+
+    def get_reward(self):
+        return self.distance
+    
 
 
             
@@ -90,7 +98,7 @@ class AbstractCar:
     def get_distance(self):
         distances = [0,0,0,0,0]
         for i,sensor in enumerate(self.sensors):
-            distances[i] = sensor.distance
+            distances[i] = sensor.distance()
         
         return distances 
 
@@ -139,9 +147,10 @@ class AbstractCar:
         self.sensors[2].calculate_line_right_side(self.img,self.x,self.y,self.angle)
         self.sensors[3].calculate_line_left_top(self.x,self.y,self.angle)
         self.sensors[4].calculate_line_right_top(self.x,self.y,self.angle)
+        """
         for sensor in self.sensors:
             sensor.draw_line(win)
-
+        """
         draw_rotate_car(win,self.img,(self.x,self.y),self.angle) # drawing rotated car
 
         
