@@ -6,24 +6,17 @@ def car_collision(win,car,TRACK_BORDER_MASK):
         pygame.draw.circle(win, (255, 0, 0), collision_point, 5)
         car.bounce()
 
-def sensors_collide(car,game_map):
-    collision_points_line = []
-    for i,sensor in enumerate(car.sensors):
-        point = sensor.line_collide(game_map) 
-        if point:
-            collision_points_line.append((i,point))
-    
-    return collision_points_line
 
 def line_collision(win,car,my_font,game_map):
-    collision_point_lines = sensors_collide(car,game_map)
+    for i,sensor in enumerate(car.sensors):
+        sensor.line_collide(game_map) # calculates where the line and border collides
+        pygame.draw.circle(win, (255, 0, 0), sensor.collision_vec, 5) #draws a red dot as a point of collision
+        text_surface = my_font.render(str(sensor.distance()), False, (0, 200, 0)) #generates 
+        win.blit(text_surface, (0, 25 * i))
 
-    for point in collision_point_lines:
-        pygame.draw.circle(win, (255, 0, 0), point[1], 5)
-        text_surface = my_font.render(str(car.sensors[point[0]].distance(point[1])), False, (0, 200, 0))
-        win.blit(text_surface, (0, 25 * point[0]))
 
 
+# Playeer movement
 def move_player(player_car):
     keys = pygame.key.get_pressed()
     if keys[pygame.K_a]:
@@ -42,5 +35,4 @@ def move_player(player_car):
     player_car.move()
     
 
-    
     

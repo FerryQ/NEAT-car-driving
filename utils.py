@@ -13,3 +13,4 @@ def rotate_car(image, top_left, angle):
     rotated_image = pygame.transform.rotate(image,angle)
 
     return rotated_image
+
