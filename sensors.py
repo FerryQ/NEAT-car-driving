@@ -29,8 +29,8 @@ class Sensor:
         center_y = y + img.get_height() // 2
 
         # Compute the front (headlight) position based on the angle
-        start_x = center_x + offset_from_center * math.cos(math.radians(angle))
-        start_y = center_y - offset_from_center * math.sin(math.radians(angle))
+        start_x = center_x
+        start_y = center_y
 
         # Compute the end of the line further in the same direction
         end_x = start_x + self.length * math.cos(math.radians(angle))
@@ -47,8 +47,8 @@ class Sensor:
         center_y = y + img.get_height() // 2
 
         # Compute the front (headlight) position based on the angle
-        start_x = center_x - offset_from_center * math.sin(math.radians(angle))
-        start_y = center_y - offset_from_center * math.cos(math.radians(angle))
+        start_x = center_x 
+        start_y = center_y 
 
         # Compute the end of the line further in the same direction
         end_x = start_x - self.length * math.sin(math.radians(angle))
@@ -65,8 +65,8 @@ class Sensor:
         center_y = y + img.get_height() // 2
 
         # Compute the front (headlight) position based on the angle
-        start_x = center_x + offset_from_center * math.sin(math.radians(angle))
-        start_y = center_y + offset_from_center * math.cos(math.radians(angle))
+        start_x = center_x 
+        start_y = center_y 
 
         # Compute the end of the line further in the same direction
         end_x = start_x + self.length * math.sin(math.radians(angle))
@@ -83,7 +83,7 @@ class Sensor:
 
         rotated_offset = offset.rotate(-angle)
 
-        start = center + rotated_offset
+        start = center 
 
         
         direction = vec2(1,0).rotate(-angle-30)
@@ -102,7 +102,7 @@ class Sensor:
 
         rotated_offset = offset.rotate(-angle)
 
-        start = center + rotated_offset
+        start = center 
 
         direction = vec2(1,0).rotate(-angle+30)
 
@@ -147,4 +147,5 @@ class Sensor:
 
         return None  # No collision
     def draw_line(self,win):
-        pygame.draw.line(win, (0, 255, 255), (self.start), (self.end), 2)
+
+        pygame.draw.line(win, (0, 255, 255), (self.start), (self.collision_vec), 2)

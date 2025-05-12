@@ -7,7 +7,7 @@ from utils import scale_image
 
 # window settings and initialization
 pygame.init()
-WIDTH, HEIGHT = (2400,1700)
+WIDTH, HEIGHT = (1920,1080)
 WIN = pygame.display.set_mode((WIDTH,HEIGHT)) #display proportions
 pygame.display.set_caption("CAR GAME!")
 
@@ -58,6 +58,7 @@ def get_inputs_for_network(car):
     return distances + [car.velocity.length(), car.angle]
 
 def eval_genomes(genomes, config):
+
     nets = []
     cars = []
     for genome_id, genome in genomes:

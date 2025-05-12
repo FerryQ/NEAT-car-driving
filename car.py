@@ -67,12 +67,17 @@ class AbstractCar:
 
     def get_reward(self):
         reward = 0
+        """
         if self.reward_gates_collision():
             reward += GATE_REWARD
-
+        
+        
+        """
+        if self.vel < 0:
+            reward -= 1000000
+        reward -= self.time / 10
         reward += self.distance
-        if self.distance < 20:
-            reward -= 1000
+       
 
         return reward
     
@@ -90,7 +95,7 @@ class AbstractCar:
 
         
             
-    def move(self):
+    def move2(self):
         # computing where the car is facing (-angle because pygame and me are treating angles differently)
         forward = vec2(1, 0).rotate(-self.angle)
 
@@ -125,14 +130,14 @@ class AbstractCar:
         return distances 
 
     
-    def move2(self):
+    def move(self):
         
         if self.accelerate:
             self.vel = min(self.vel + self.acceleration, self.max_vel)
         elif self.brake:
             self.vel = max(self.vel - self.acceleration, -self.max_vel)
         else:
-            self.vel = 0
+            self.vel *= 0.98
 
 
         #self.vel *= self.friction
@@ -164,16 +169,17 @@ class AbstractCar:
     
     # draws sensors and rotated car
     def draw(self, win):
+        draw_rotate_car(win,self.img,(self.x,self.y),self.angle) # drawing rotated car
+
         self.sensors[0].calculate_line(self.img,self.x,self.y,self.angle)
         self.sensors[1].calculate_line_left_side(self.img,self.x,self.y,self.angle)
         self.sensors[2].calculate_line_right_side(self.img,self.x,self.y,self.angle)
         self.sensors[3].calculate_line_left_top(self.x,self.y,self.angle)
         self.sensors[4].calculate_line_right_top(self.x,self.y,self.angle)
-        """
+        
         for sensor in self.sensors:
             sensor.draw_line(win)
-        """
-        draw_rotate_car(win,self.img,(self.x,self.y),self.angle) # drawing rotated car
+        
 
         
     # collision of car and border

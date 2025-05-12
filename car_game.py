@@ -2,6 +2,7 @@ import pygame
 import time
 import math
 import random
+import button
 import car_utils as cu
 from utils import scale_image, draw_rotate_car,rotate_car
 from pygame.math import Vector2 as vec2
@@ -9,7 +10,7 @@ from car import PlayerCar
 
 # window settings and initialization
 pygame.init()
-WIDTH, HEIGHT = (2400,1700)
+WIDTH, HEIGHT = (1920,1080)
 WIN = pygame.display.set_mode((WIDTH,HEIGHT)) #display proportions
 pygame.display.set_caption("CAR GAME!")
 
@@ -25,6 +26,10 @@ pygame.font.init() # you have to call this at the start,
                    # if you want to use this module.
 my_font = pygame.font.SysFont('Comic Sans MS', 30)
 
+# Start menu
+levels_img = pygame.image.load("images/levels.png").convert_alpha()
+levels_button = button.Button(WIDTH/2,HEIGHT/2,levels_img,1)
+
 
 # Track settings
 TRACK = pygame.image.load("images/track4.png").convert() # Track image
@@ -34,6 +39,12 @@ BORDER_COLOUR = (255, 255, 255) # Border colour for collision
 START = (WIDTH//2, 500) # starting position
 FPS = 60
 positions = [((1616, 1181), (1825, 1333)), ((1935, 748), (2184, 670)),((1606, 373), (1684, 163)), ((1027, 383), (879, 189)), ((477, 566), (263, 463)), ((347, 724), (196, 920)), ((396, 1490), (567, 1275))]
+
+
+class Game_info:
+    
+    def __init__(self,started = False):
+        self.started = started
 
 
 
@@ -61,10 +72,32 @@ run =  True
 clock = pygame.time.Clock()
 #player_car = PlayerCar(CAR_SPEED,4)
 
+
+
+#list of cars
 cars = []
+
+#initializing game_info
+game_info = Game_info()
 
 while run:
     clock.tick(FPS) #speed of rendering
+    
+    while not game_info.started:
+        WIN.fill((255,255,255));
+        if levels_button.draw(WIN):
+            game_info.started = True
+
+
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    game_info.started = True
+
+
+        
 
     #WIN.fill(BORDER_COLOUR)
     WIN.fill((0,0,0));
