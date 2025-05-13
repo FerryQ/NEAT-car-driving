@@ -29,6 +29,7 @@ class AbstractCar:
         #drifting
         self.position = vec2(self.x, self.y)
         self.velocity = vec2(0, 0)
+        self.forward = (0,0)
         self.direction = vec2(1, 0)  # Forward facing direction
         self.acceleration = 0.2
         self.friction = 0.98
@@ -95,31 +96,7 @@ class AbstractCar:
 
         
             
-    def move2(self):
-        # computing where the car is facing (-angle because pygame and me are treating angles differently)
-        forward = vec2(1, 0).rotate(-self.angle)
-
-        # apply accelerate/brake, depending on the input from user
-        if self.accelerate:
-            self.velocity += forward * self.acceleration #
-        if self.brake:
-            self.velocity -= forward * self.acceleration/2
-
-        # 3) Apply general friction (slows both forward & sideways)
-        self.velocity *= self.friction
-
-        # 4) Split into forward & sideways parts for drift
-        forward_vel = forward * self.velocity.dot(forward)
-        side_vel = self.velocity - forward_vel
-        self.velocity = forward_vel + side_vel * self.drift_factor
-
-        # 5) Update position
-        self.position += self.velocity
-        self.x, self.y = self.position.x, self.position.y
-
-        # update distance and time
-        self.distance += self.velocity.length()
-        self.time += 1
+    
     
     #returns distances of sensors between car and collision points
     def get_distance(self):
@@ -129,28 +106,9 @@ class AbstractCar:
         
         return distances 
 
-    
+    #implemented in DriftCar and NormalCar
     def move(self):
-        
-        if self.accelerate:
-            self.vel = min(self.vel + self.acceleration, self.max_vel)
-        elif self.brake:
-            self.vel = max(self.vel - self.acceleration, -self.max_vel)
-        else:
-            self.vel *= 0.98
-
-
-        #self.vel *= self.friction
-        self.distance += self.vel
-        self.time += 1
-        
-        forward = vec2(1, 0).rotate(-self.angle)
-        
-        self.position += self.vel * forward
-        self.x, self.y = self.position.x, self.position.y
-
-
-
+        pass
     
     # setting mode when pressing forward (w)
     def start_accel(self):
@@ -233,13 +191,75 @@ class AbstractCar:
 
 
 
-class PlayerCar(AbstractCar):
+class NormalCar(AbstractCar):
 
-    def bounce(self):
-        if self.drift_mode:
-            self.velocity = -self.velocity
+    def move(self):
         
+        if self.accelerate:
+            self.vel = min(self.vel + self.acceleration, self.max_vel)
+        elif self.brake:
+            self.vel = max(self.vel - self.acceleration, -self.max_vel)
         else:
-            self.vel = -self.vel
+            self.vel *= 0.98
 
-        self.move()
+
+        #self.vel *= self.friction
+        self.distance += self.vel
+        self.time += 1
+        
+        forward = vec2(1, 0).rotate(-self.angle)
+        
+        self.position += self.vel * forward
+        self.x, self.y = self.position.x, self.position.y
+
+
+class DriftCar(AbstractCar):
+
+    def get_reward(self):
+        reward = 0
+        """
+        if self.reward_gates_collision():
+            reward += GATE_REWARD
+        
+        
+        """
+        if self.velocity.dot(self.forward) < 0:
+            speed = -300000
+        else:
+            speed = self.velocity.dot(self.forward) * 5
+        time = -self.time / 10
+        distance = self.distance
+
+        reward = speed + time + distance
+
+        #print(f"Speed,time,distance {speed, time, distance}")
+       
+
+        return reward
+    
+    def move(self):
+        # computing where the car is facing (-angle because pygame and me are treating angles differently)
+        forward = vec2(1, 0).rotate(-self.angle)
+        self.forward = forward
+
+        # apply accelerate/brake, depending on the input from user
+        if self.accelerate:
+            self.velocity += forward * self.acceleration #
+        if self.brake:
+            self.velocity -= forward * self.acceleration/2
+
+        # 3) Apply general friction (slows both forward & sideways)
+        self.velocity *= self.friction
+
+        # 4) Split into forward & sideways parts for drift
+        forward_vel = forward * self.velocity.dot(forward)
+        side_vel = self.velocity - forward_vel
+        self.velocity = forward_vel + side_vel * self.drift_factor
+
+        # 5) Update position
+        self.position += self.velocity
+        self.x, self.y = self.position.x, self.position.y
+
+        # update distance and time
+        self.distance += self.velocity.length()
+        self.time += 1

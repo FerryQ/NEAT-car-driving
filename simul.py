@@ -2,10 +2,12 @@ import neat
 import pygame
 import time
 import sys
-from car import PlayerCar
+import numpy as np
+
+from car import NormalCar, DriftCar
 
 class Simulation:
-    def __init__(self,win,max_generations, track, car_speed, start,car_img):
+    def __init__(self,win,max_generations, track, car_speed, start,car_img,drift_car=False):
         self.max_generations = max_generations
         self.win = win
         self.CURRENT_GENERATION = 0
@@ -14,8 +16,18 @@ class Simulation:
         self.start = start
         self.stats = None
         self.car_img = car_img 
+        self.drift_car = drift_car
         self.clock = pygame.time.Clock()
         self.my_font = pygame.font.SysFont('Comic Sans MS', 30)
+
+        num_points = 65
+
+        # Random (x, y) coordinates uniformly distributed
+        x_coords = np.random.randint(1450, 1850, size=num_points)
+        y_coords = np.random.randint(650, 1000, size=num_points)
+
+        self.pixel_coords = np.column_stack((x_coords, y_coords))
+
 
     
     def make_gate(self,positions):
@@ -39,7 +51,12 @@ class Simulation:
         
     def get_inputs_for_network(self,car):
         distances = car.get_distance()
+        if self.drift_car:
+            return distances + [car.velocity.length(), car.angle]
+        
         return distances + [car.vel, car.angle]
+
+        
 
     def run_simulation(self):
         config_path = "./config.txt"
@@ -63,6 +80,9 @@ class Simulation:
         for car in cars:
             if car.is_alive():
                 car.draw(self.win)
+
+        for pixel in self.pixel_coords:
+            pygame.draw.circle(self.win,(255,0,0),pixel,10)
 
         #make_gate(REWARD_GATES)
         
@@ -94,7 +114,11 @@ class Simulation:
         for genome_id, genome in genomes:
             net = neat.nn.FeedForwardNetwork.create(genome, config)
             nets.append(net)
-            car = PlayerCar(self.car_speed, 6, self.start, self.car_img, self.track)
+            if self.drift_car:
+                car = DriftCar(self.car_speed, 6, self.start, self.car_img, self.track)
+            else:
+                car = NormalCar(self.car_speed, 6, self.start, self.car_img, self.track)
+
             cars.append(car)
             genome.fitness = 0
 
@@ -111,6 +135,9 @@ class Simulation:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit(0)
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_n:
+                        run = False
 
             for i,car in enumerate(cars):
                 inputs = self.get_inputs_for_network(car)
@@ -120,7 +147,7 @@ class Simulation:
                 self.apply_output_to_car(car, output)
 
                 if car.is_alive():
-                    if car.vel == 0:
+                    if car.vel == 0 and not self.drift_car:
                         no_speed += 1
                     alive_counter += 1
                     genomes[i][1].fitness += car.get_reward()
