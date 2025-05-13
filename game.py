@@ -285,13 +285,15 @@ while run:
 
         pygame.display.update()
 
+    #level two
     while game_info.level_two:
         simulation = Simulation(WIN,1000,TRACK1,CAR_SPEED,(660,895),CAR)
 
         simulation.run_simulation()
     
+    #level three
     while game_info.level_three:
-        simulation = Simulation(WIN,1000,TRACK1,CAR_SPEED,(690,975),CAR)
+        simulation = Simulation(WIN,1000,TRACK2,CAR_SPEED,(690,975),CAR)
 
         simulation.run_simulation()
 

@@ -12,6 +12,7 @@ class Simulation:
         self.track = track
         self.car_speed = car_speed
         self.start = start
+        self.stats = None
         self.car_img = car_img 
         self.clock = pygame.time.Clock()
         self.my_font = pygame.font.SysFont('Comic Sans MS', 30)
@@ -51,8 +52,8 @@ class Simulation:
         # Create Population And Add Reporters
         population = neat.Population(config)
         population.add_reporter(neat.StdOutReporter(True))
-        stats = neat.StatisticsReporter()
-        population.add_reporter(stats)
+        self.stats = neat.StatisticsReporter()
+        population.add_reporter(self.stats)
 
         population.run(self.eval_genomes, 1000)
 
@@ -66,10 +67,19 @@ class Simulation:
         #make_gate(REWARD_GATES)
         
         # Display Info
-        text = self.my_font.render("Generation: " + str(self.CURRENT_GENERATION), True, (0,0,0))
+        text = self.my_font.render("Generation: " + str(self.CURRENT_GENERATION), True, (255,255,255))
         text_rect = text.get_rect()
-        text_rect.center = (900, 450)
+        text_rect.topleft = (1400, 540)
         self.win.blit(text, text_rect)
+
+
+        if self.stats.generation_statistics:
+            species_list = self.stats.get_species_sizes()
+
+            num_species = len(species_list[-1])
+
+            text_surface = self.my_font.render(str(num_species),False,(255,0,0))
+            self.win.blit(text_surface,(1400,850))
 
         text_surface = self.my_font.render(str(timer),False,(255,0,0))
         self.win.blit(text_surface,(1200,850))
