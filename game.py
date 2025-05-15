@@ -197,45 +197,11 @@ while run:
                     sys.exit()
     
     while game_info.level_one:
-        clock.tick(FPS) #speed of rendering
-
-        WIN.fill((0,0,255))
-        WIN.blit(TRACK1,(0,0))
-        for car in cars:
-            car.draw(WIN)
-            if car.is_alive():
-                text = my_font.render("ALIVE",False,(0, 255, 0))
-                WIN.blit(text, (0, 25 * 10))
-            else:
-                text = my_font.render("DEAD",False,(255, 0, 0))
-                WIN.blit(text, (0, 25 * 10))
-
-            if car.reward_gates_collision():
-                text = my_font.render("TOUCHING",False,(240, 0, 0))
-                WIN.blit(text, (0, 25 * 15))
-            else:
-                text = my_font.render("NOT TOUCHING",False,(240, 70, 0))
-                WIN.blit(text, (0, 25 * 15))
-
-            update(car)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-                game_info.level_one = False
-                break
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = pygame.mouse.get_pos()
-                cars.append(place_car((x,y),TRACK1))
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:
-                    reset_cars(cars)
-
-        pygame.display.update()
+        drift_normal(WIN,TRACK1,(660,895))
 
     #level two
     while game_info.level_two:
-        drift_normal(WIN,TRACK2,(660,895))
+        drift_normal(WIN,TRACK2,(700,987))
 
     drawing = False
     placed_car = False
