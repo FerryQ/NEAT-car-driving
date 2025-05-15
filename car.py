@@ -12,8 +12,9 @@ GATE_REWARD = 1000000
 
 
 class AbstractCar:
-    def __init__(self, max_vel, rotation_vel, start_pos, car_image,game_map,reward_gates=None,drift_mode=False):
+    def __init__(self, max_vel, rotation_vel, start_pos, car_image,game_map,best_car,reward_gates=None,drift_mode=False):
         self.img = car_image
+        self.best_car_img = best_car
         self.game_map = game_map
         self.width = car_image.get_size()[0]
         self.height = car_image.get_size()[1]
@@ -29,11 +30,12 @@ class AbstractCar:
         #drifting
         self.position = vec2(self.x, self.y)
         self.velocity = vec2(0, 0)
+        self.max_speed = 3.5
         self.forward = (0,0)
         self.direction = vec2(1, 0)  # Forward facing direction
         self.acceleration = 0.2
         self.friction = 0.98
-        self.drift_factor = 0.98# Lower = less drift, 1 = more drift
+        self.drift_factor = 0.99# Lower = less drift, 1 = more drift
 
 
         #Car flags
@@ -47,6 +49,7 @@ class AbstractCar:
         self.alive = True
         self.reward_gates = reward_gates
         self.gates_passed = 0
+        self.best_car = False
 
     def is_alive(self):
         return self.alive
@@ -95,9 +98,6 @@ class AbstractCar:
         return False
 
         
-            
-    
-    
     #returns distances of sensors between car and collision points
     def get_distance(self):
         distances = [0,0,0,0,0]
@@ -127,13 +127,17 @@ class AbstractCar:
     
     # draws sensors and rotated car
     def draw(self, win):
-        draw_rotate_car(win,self.img,(self.x,self.y),self.angle) # drawing rotated car
+        if self.best_car:
 
-        self.sensors[0].calculate_line(self.img,self.x,self.y,self.angle)
-        self.sensors[1].calculate_line_left_side(self.img,self.x,self.y,self.angle)
-        self.sensors[2].calculate_line_right_side(self.img,self.x,self.y,self.angle)
-        self.sensors[3].calculate_line_left_top(self.x,self.y,self.angle)
-        self.sensors[4].calculate_line_right_top(self.x,self.y,self.angle)
+            draw_rotate_car(win,self.best_car_img,(self.x,self.y),self.angle) # drawing rotated car
+        else:    
+            draw_rotate_car(win,self.img,(self.x,self.y),self.angle) # drawing rotated car
+
+        self.sensors[0].calculate_line(self.img,self.x,self.y,self.angle)               # 0°
+        self.sensors[1].calculate_line_left_side(self.img,self.x,self.y,self.angle)     # 90°
+        self.sensors[2].calculate_line_right_side(self.img,self.x,self.y,self.angle)    # -90°
+        self.sensors[3].calculate_line_left_top(self.x,self.y,self.angle)               # 30°
+        self.sensors[4].calculate_line_right_top(self.x,self.y,self.angle)              # -30°
         
         for sensor in self.sensors:
             sensor.draw_line(win)
@@ -247,6 +251,8 @@ class DriftCar(AbstractCar):
             self.velocity += forward * self.acceleration #
         if self.brake:
             self.velocity -= forward * self.acceleration/2
+        if self.velocity.length() > self.max_speed:
+            self.velocity = self.velocity.normalize() * self.max_speed
 
         # 3) Apply general friction (slows both forward & sideways)
         self.velocity *= self.friction
@@ -263,3 +269,4 @@ class DriftCar(AbstractCar):
         # update distance and time
         self.distance += self.velocity.length()
         self.time += 1
+        

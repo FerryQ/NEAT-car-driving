@@ -40,40 +40,42 @@ class Sensor:
         self.end = (end_x,end_y)
     
     def calculate_line_left_side(self, img,x,y,angle):
-        offset_from_center = img.get_height() // 2  # Distance from center to front
 
-        # Get the center of the car (rotation point)
-        center_x = x + img.get_width() // 2
-        center_y = y + img.get_height() // 2
+        center = vec2(x + self.img_width/2, y + self.img_height/2)
 
-        # Compute the front (headlight) position based on the angle
-        start_x = center_x 
-        start_y = center_y 
+        offset = vec2(0,- self.img_height/2)
 
-        # Compute the end of the line further in the same direction
-        end_x = start_x - self.length * math.sin(math.radians(angle))
-        end_y = start_y - self.length * math.cos(math.radians(angle))
+        rotated_offset = offset.rotate(-angle)
 
-        self.start = (start_x,start_y)
-        self.end = (end_x,end_y)
+        start = center + rotated_offset
+
+        
+        direction = vec2(1,0).rotate(-angle-90)
+
+        end = start + direction* self.length
+
+        self.start = (start.x,start.y)
+        self.end = (end.x,end.y)
 
     def calculate_line_right_side(self, img,x,y,angle):
-        offset_from_center = img.get_height() // 2  # Distance from center to front
 
-        # Get the center of the car (rotation point)
-        center_x = x + img.get_width() // 2
-        center_y = y + img.get_height() // 2
+        center = vec2(x + self.img_width/2, y + self.img_height/2)
 
-        # Compute the front (headlight) position based on the angle
-        start_x = center_x 
-        start_y = center_y 
+        offset = vec2(0, self.img_height/2)
 
-        # Compute the end of the line further in the same direction
-        end_x = start_x + self.length * math.sin(math.radians(angle))
-        end_y = start_y + self.length * math.cos(math.radians(angle))
+        rotated_offset = offset.rotate(-angle)
 
-        self.start = (start_x,start_y)
-        self.end = (end_x,end_y)
+        start = center + rotated_offset
+
+        
+        direction = vec2(1,0).rotate(-angle+90)
+
+        end = start + direction* self.length
+
+        self.start = (start.x,start.y)
+        self.end = (end.x,end.y)
+
+
     
     def calculate_line_left_top(self,x,y,angle):
         
@@ -83,7 +85,7 @@ class Sensor:
 
         rotated_offset = offset.rotate(-angle)
 
-        start = center 
+        start = center + rotated_offset
 
         
         direction = vec2(1,0).rotate(-angle-30)
@@ -102,7 +104,7 @@ class Sensor:
 
         rotated_offset = offset.rotate(-angle)
 
-        start = center 
+        start = center + rotated_offset
 
         direction = vec2(1,0).rotate(-angle+30)
 
@@ -130,7 +132,7 @@ class Sensor:
         dy = end_y - start_y 
 
         distance = int(math.hypot(dx,dy))
-
+        
         for i in range(distance):
 
             t = i / distance
@@ -140,7 +142,6 @@ class Sensor:
             # Offset relative to mask
 
             # Make sure we're not out of bounds
-            
             if game_map.get_at((x, y)) == BORDER_COLOUR:
                 self.collision_vec = (x,y)
                 return (x,y)  # Collision detected

@@ -1,13 +1,29 @@
 import neat
 import pygame
+from NN import NN
 import time
 import sys
 import numpy as np
 
 from car import NormalCar, DriftCar
 
+colours = [
+    (255, 0, 0),     # red
+    (0, 255, 0),     # green
+    (0, 0, 255),     # blue
+    (255, 255, 0),   # yellow
+    (255, 0, 255),   # magenta
+    (0, 255, 255),   # cyan
+    (255, 165, 0),   # orange
+    (128, 0, 128),   # purple
+    (0, 128, 128),   # teal
+    (128, 128, 0),   # olive
+]
+
+
+
 class Simulation:
-    def __init__(self,win,max_generations, track, car_speed, start,car_img,drift_car=False):
+    def __init__(self,win,max_generations, track, car_speed, start,car_img,best_car_img,drift_car=False,):
         self.max_generations = max_generations
         self.win = win
         self.CURRENT_GENERATION = 0
@@ -15,12 +31,19 @@ class Simulation:
         self.car_speed = car_speed
         self.start = start
         self.stats = None
-        self.car_img = car_img 
+        self.car_img = car_img
+        self.best_car_img = best_car_img
         self.drift_car = drift_car
         self.clock = pygame.time.Clock()
-        self.my_font = pygame.font.SysFont('Comic Sans MS', 30)
+        self.best_nn = None
+        self.best_fitness = -1000000
+        self.best_index = 0
+        self.my_font = pygame.font.SysFont('Comic Sans MS', 25)
+        self.nns = [None] * 70
 
-        num_points = 65
+        #Nodes and connections
+
+        num_points = 70
 
         # Random (x, y) coordinates uniformly distributed
         x_coords = np.random.randint(1450, 1850, size=num_points)
@@ -77,12 +100,21 @@ class Simulation:
     def draw(self,cars,timer):
         self.win.fill((0,0,0));
         self.win.blit(self.track,(0,0))
+        if self.best_index:
+            cars[self.best_index].best_car = True
+
+            pygame.draw.circle(self.win,(255,0,0),cars[self.best_index].position,15)
         for car in cars:
             if car.is_alive():
                 car.draw(self.win)
 
-        for pixel in self.pixel_coords:
-            pygame.draw.circle(self.win,(255,0,0),pixel,10)
+        if self.best_nn:
+                self.best_nn.draw(self.win)
+
+        cars[self.best_index].draw(self.win)
+        
+
+        
 
         #make_gate(REWARD_GATES)
         
@@ -92,14 +124,24 @@ class Simulation:
         text_rect.topleft = (1400, 540)
         self.win.blit(text, text_rect)
 
+        pygame.display.update()
+
 
         if self.stats.generation_statistics:
             species_list = self.stats.get_species_sizes()
 
             num_species = len(species_list[-1])
 
-            text_surface = self.my_font.render(str(num_species),False,(255,0,0))
-            self.win.blit(text_surface,(1400,850))
+            index = 0
+            for i in range(num_species):
+                for _ in range(species_list[-1][i]):
+                    pygame.draw.circle(self.win,colours[i],self.pixel_coords[index],10)
+                    index += 1 
+
+            
+
+            text_surface = self.my_font.render("Number of species:" + str(num_species),True,(255,255,255))
+            self.win.blit(text_surface,(1400,540+text_rect.height))
 
         text_surface = self.my_font.render(str(timer),False,(255,0,0))
         self.win.blit(text_surface,(1200,850))
@@ -111,16 +153,21 @@ class Simulation:
 
         nets = []
         cars = []
+        self.best_fitness = -1000000
+        
+        i = 0
         for genome_id, genome in genomes:
             net = neat.nn.FeedForwardNetwork.create(genome, config)
             nets.append(net)
             if self.drift_car:
-                car = DriftCar(self.car_speed, 6, self.start, self.car_img, self.track)
+                car = DriftCar(self.car_speed, 6, self.start, self.car_img, self.track,self.best_car_img)
             else:
-                car = NormalCar(self.car_speed, 6, self.start, self.car_img, self.track)
+                car = NormalCar(self.car_speed, 6, self.start, self.car_img, self.track,self.best_car_img)
 
             cars.append(car)
+            self.nns[i] = (NN(config, genome, (1500, 130)))
             genome.fitness = 0
+            i+=1
 
         self.CURRENT_GENERATION += 1
 
@@ -146,14 +193,30 @@ class Simulation:
 
                 self.apply_output_to_car(car, output)
 
+                for node in self.nns[i].nodes:
+                    node.inputs = inputs
+                    node.output = output
+
                 if car.is_alive():
                     if car.vel == 0 and not self.drift_car:
                         no_speed += 1
                     alive_counter += 1
-                    genomes[i][1].fitness += car.get_reward()
                     car.update()
+                    genomes[i][1].fitness += car.get_reward()
+                    if genomes[i][1].fitness > self.best_fitness:
+                        self.best_fitness = genomes[i][1].fitness
+                        self.best_nn = self.nns[i]
+                        self.best_index = i
+                    else:
+                        self.best_nn = self.nns[self.best_index]
+
+                    
+                
+                
 
             timer += 1
+
+            
 
             if timer > 1 and alive_counter == no_speed:
                 run = False
