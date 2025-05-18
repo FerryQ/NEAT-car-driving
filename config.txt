@@ -6,7 +6,7 @@ reset_on_extinction   = True
 
 [DefaultStagnation]
 species_fitness_func = max
-max_stagnation       = 20
+max_stagnation       = 5
 species_elitism      = 2
 
 [DefaultSpeciesSet]

@@ -5,7 +5,9 @@ import random
 import button
 import neat
 import sys
+import numpy as np
 import car_utils as cu
+from scipy.spatial import ConvexHull
 from simul import Simulation
 from utils import scale_image, draw_rotate_car,rotate_car
 from pygame.math import Vector2 as vec2
@@ -57,6 +59,8 @@ level1_button = button.Button(350,302,level1_img,1)
 level2_button = button.Button(550,302,level2_img,1)
 level3_button = button.Button(750,302,level3_img,1)
 myo_button = button.Button(950,302,myo_img,1)
+test_button = button.Button(1150,302,myo_img,1)
+
 
 drift_car_button = button.Button(760-drift_car_img.get_width()/2,500,drift_car_img,1)
 normal_car_button = button.Button(1160 - normal_car_img.get_width()/2 ,500,normal_car_img,1)
@@ -96,6 +100,8 @@ class Game_info:
 
         self.myo_level = False
 
+        self.test_level = False
+
 
 def drift_normal(win,track,start_pos):
     while not game_info.drift_car and not game_info.normal_car:
@@ -121,7 +127,7 @@ def drift_normal(win,track,start_pos):
 
         simulation.run_simulation()
     else:
-        simulation = Simulation(win,1000,track,CAR_SPEED,start_pos,CAR,BEST_CAR)
+        simulation = Simulation(win,1000,track,8,start_pos,CAR,BEST_CAR)
 
         simulation.run_simulation()
 
@@ -158,6 +164,39 @@ cars = []
 #initializing game_info
 game_info = Game_info()
 
+num_points = 56
+x_coords = np.random.randint(250, 1150, size=num_points)
+y_coords = np.random.randint(250, 920, size=num_points)
+
+pixel_coords = np.column_stack((x_coords, y_coords))
+
+conv_points = ConvexHull(pixel_coords).vertices
+num_conv_points = len(conv_points)
+
+def bezier(p0,p1,p2):
+    for t in np.arange(0, 1, 0.01):
+        point = (1-t)*((1-t)*p0 + t*p1) + t*((1-t)*p1 + t*p2)
+        #point = p0 + t*(p1-p0)
+        pygame.draw.circle(WIN,(0,0,0),point.astype(int),50)
+
+
+def generate_hull():
+    num_points = 30
+
+    x_coords = np.random.randint(150, 1150, size=num_points)
+    y_coords = np.random.randint(150, 920, size=num_points)
+
+    pixel_coords = np.column_stack((x_coords, y_coords))
+
+    conv_points = ConvexHull(pixel_coords).vertices
+    num_conv_points = len(conv_points)
+
+    return pixel_coords, conv_points, num_conv_points
+
+
+
+
+
 
 while run:
     clock.tick(FPS) #speed of rendering
@@ -170,7 +209,7 @@ while run:
             game_info.levels_menu = True
         
         if game_info.levels_menu:
-            WIN.fill((190,190,210))
+            WIN.fill((190,190,210)) 
             #action level 1 button
             WIN.blit(level1_track_img,(330,160))
             if level1_button.draw(WIN):
@@ -187,6 +226,11 @@ while run:
                 game_info.started = True
                 game_info.myo_level = True
                 WIN.fill((255,255,255))
+            
+            if test_button.draw(WIN):
+                game_info.started = True
+                game_info.test_level = True
+
 
 
         pygame.display.update()
@@ -196,13 +240,49 @@ while run:
                 if event.key == pygame.K_SPACE:
                     sys.exit()
     
+#----------------TEST LEVEL------------------------------------#
+    while game_info.test_level:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_n:
+                    pixel_coords, conv_points, num_conv_points = generate_hull()
+                    while (num_conv_points % 2) != 0:
+                        pixel_coords, conv_points, num_conv_points = generate_hull()
+
+
+
+        WIN.fill((255,255,255))
+        for pixel in pixel_coords:
+            pygame.draw.circle(WIN,(255,0,0),pixel,10)
+
+        
+        
+        for index in range(0,num_conv_points,2):
+            bezier(pixel_coords[conv_points[index%num_conv_points]], pixel_coords[conv_points[(index+1)%num_conv_points]], pixel_coords[conv_points[(index+2)%num_conv_points]])
+        
+        for index in conv_points:
+            pygame.draw.circle(WIN,(0,255,0),pixel_coords[index],10)
+
+  
+
+
+
+        pygame.display.update()
+
+
+
+
+#----------------LEVEL ONE------------------------------------#
     while game_info.level_one:
-        drift_normal(WIN,TRACK1,(660,895))
+        drift_normal(WIN,TRACK1,(660,895)) # choose between drift or normal car
 
-    #level two
+#----------------LEVEL TWO------------------------------------#
     while game_info.level_two:
-        drift_normal(WIN,TRACK2,(700,987))
+        drift_normal(WIN,TRACK2,(700,987)) # choose between drift or normal car
 
+#----------------LEVEL THREE------------------------------------#
     drawing = False
     placed_car = False
     track_done = False
