@@ -19,17 +19,11 @@ WIDTH, HEIGHT = (1920,1080)
 WIN = pygame.display.set_mode((WIDTH,HEIGHT)) #display proportions
 pygame.display.set_caption("CAR GAME!")
 
-# Car settings
+#------------------------------------CAR SETTINGS------------------------------------#
 CAR = scale_image(pygame.image.load("images/car2.png").convert_alpha(), 0.4) # car image
 CAR_SIZE_X, CAR_SIZE_Y = CAR.get_size() # car size
 CAR_SPEED = 6 # car speed
 BEST_CAR = scale_image(pygame.image.load("images/best_car.png").convert_alpha(), 0.4) # car image
-
-
-
-        
-
-
 
 #TEXT
 pygame.font.init() # you have to call this at the start, 
@@ -38,7 +32,8 @@ my_font = pygame.font.SysFont('Comic Sans MS', 30)
 guide_font = pygame.font.SysFont('purisa', 50)
 
 
-# Start menu
+#------------------------------------BUTTONS------------------------------------#
+# images
 levels_img = pygame.image.load("images/levels.png").convert_alpha()
 level1_img = pygame.image.load("images/lvl1.png").convert_alpha()
 level2_img = pygame.image.load("images/lvl2.png").convert_alpha()
@@ -46,47 +41,41 @@ level3_img = pygame.image.load("images/lvl3.png").convert_alpha()
 myo_img = pygame.image.load("images/myo.png").convert_alpha()
 drift_car_img = scale_image(pygame.image.load("images/drift.png").convert_alpha(),2)
 normal_car_img = scale_image(pygame.image.load("images/normal.png").convert_alpha(),2)
-
 level1_track_img = scale_image(pygame.image.load("images/track1.png").convert_alpha(),0.1125)
 level2_track_img = scale_image(pygame.image.load("images/track2.png").convert_alpha(),0.1125)
+new_generation_img = pygame.image.load("images/NEW_GENERATION.png").convert_alpha()
+load_generation_img = pygame.image.load("images/LOAD_GENERATION.png").convert_alpha()
 
 
-
-
-
+# init buttons
 levels_button = button.Button(810,526,levels_img,1) 
 level1_button = button.Button(350,302,level1_img,1)
 level2_button = button.Button(550,302,level2_img,1)
 level3_button = button.Button(750,302,level3_img,1)
 myo_button = button.Button(950,302,myo_img,1)
 test_button = button.Button(1150,302,myo_img,1)
-
-
 drift_car_button = button.Button(760-drift_car_img.get_width()/2,500,drift_car_img,1)
 normal_car_button = button.Button(1160 - normal_car_img.get_width()/2 ,500,normal_car_img,1)
+new_generation_button = button.Button(760-drift_car_img.get_width()/2,500,new_generation_img,1)
+load_generation_button = button.Button(1160 - normal_car_img.get_width()/2,500,load_generation_img,1)
 
 
 
-
-
-# Track settings
+#------------------------------------TRACK SETTINGS------------------------------------#
 TRACK1 = pygame.image.load("images/track1.png").convert() # Track image
 TRACK2 = pygame.image.load("images/track2.png").convert() # Track image
 
-
-
 BORDER_COLOUR = (255, 255, 255) # Border colour for collision
-
 
 START = (WIDTH//2, 500) # starting position
 FPS = 60
-positions = [((1616, 1181), (1825, 1333)), ((1935, 748), (2184, 670)),((1606, 373), (1684, 163)), ((1027, 383), (879, 189)), ((477, 566), (263, 463)), ((347, 724), (196, 920)), ((396, 1490), (567, 1275))]
 
 
 class Game_info:
     
     def __init__(self,started = False,levels_menu=False):
         self.started = started
+        self.exited = False
         self.levels_menu = levels_menu
 
         self.drift_car = False
@@ -102,8 +91,32 @@ class Game_info:
 
         self.test_level = False
 
+        self.new_generation = True #in the beggining i want only new_generatio we don't have a loaded one
+    
+    def reset(self):
+        self.started = False
+        self.exited = False
+        self.levels_menu = False
 
-def drift_normal(win,track,start_pos):
+        self.drift_car = False
+        self.normal_car = False
+
+        self.level_one = False
+
+        self.level_two = False
+
+        self.level_three = False
+
+        self.myo_level = False
+
+        self.test_level = False
+
+        self.new_generation = False
+
+
+
+# Pick betweeen two modes and start simulation
+def drift_normal(win,track,start_pos,new_generation):
     while not game_info.drift_car and not game_info.normal_car:
         win.fill((190,190,210))
 
@@ -114,7 +127,6 @@ def drift_normal(win,track,start_pos):
                 sys.exit()
         
         win.blit(text1,((WIDTH/2) - (text1.get_width()//2),50))
-        pygame.draw.line(win,(255,0,0),(960,0),(960,1080),3)
 
         if drift_car_button.draw(win):
             game_info.drift_car = True
@@ -123,20 +135,44 @@ def drift_normal(win,track,start_pos):
         pygame.display.update()
 
     if game_info.drift_car:
-        simulation = Simulation(win,1000,track,CAR_SPEED,start_pos,CAR,BEST_CAR,True)
+        simulation = Simulation(win,1000,track,CAR_SPEED,start_pos,CAR,BEST_CAR,True,new_generation)
 
         simulation.run_simulation()
     else:
-        simulation = Simulation(win,1000,track,8,start_pos,CAR,BEST_CAR)
+        simulation = Simulation(win,1000,track,8,start_pos,CAR,BEST_CAR,checkpoint=new_generation)
 
         simulation.run_simulation()
+    
+    return simulation.exited
+
+def load_or_new(win):
+    while not game_info.drift_car and not game_info.normal_car:
+        win.fill((190,190,210))
+
+        text1 = guide_font.render("Start new generation or Load your previous",True,(0,0,0))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        
+        win.blit(text1,((WIDTH/2) - (text1.get_width()//2),50))
+
+        if new_generation_button.draw(win):
+            return False
+        if load_generation_button.draw(win):
+            return True
+        pygame.display.update()
+
+    
+    
+    return 
 
 
 
 
 # initializing car
 def place_car(pos,track):
-    return DriftCar(CAR_SPEED,4,pos,CAR, track, positions)
+    return DriftCar(CAR_SPEED,4,pos,CAR, track)
 
 # car update (moving, car collision, line collision)
 def update(car):
@@ -173,15 +209,15 @@ pixel_coords = np.column_stack((x_coords, y_coords))
 conv_points = ConvexHull(pixel_coords).vertices
 num_conv_points = len(conv_points)
 
-def bezier(p0,p1,p2):
+def bezier(p0,p1,p2,screen):
     for t in np.arange(0, 1, 0.01):
         point = (1-t)*((1-t)*p0 + t*p1) + t*((1-t)*p1 + t*p2)
         #point = p0 + t*(p1-p0)
-        pygame.draw.circle(WIN,(0,0,0),point.astype(int),50)
+        pygame.draw.circle(screen,(0,0,0),point.astype(int),50)
 
 
 def generate_hull():
-    num_points = 30
+    num_points = 20
 
     x_coords = np.random.randint(150, 1150, size=num_points)
     y_coords = np.random.randint(150, 920, size=num_points)
@@ -196,12 +232,10 @@ def generate_hull():
 
 
 
-
-
 while run:
     clock.tick(FPS) #speed of rendering
     
-    #game menu
+#------------------------------------START MENU------------------------------------#
     while not game_info.started:
         WIN.fill((255,255,255))
             
@@ -240,27 +274,61 @@ while run:
                 if event.key == pygame.K_SPACE:
                     sys.exit()
     
-#----------------TEST LEVEL------------------------------------#
+#------------------------------------TEST LEVEL------------------------------------#
+    drawing = False
+    placed_car = False
+    track_done = False
+    start_pos = None
+    PROCEDURAL_TRACK = pygame.Surface((1400,1080))
+    PROCEDURAL_TRACK.fill((255, 255, 255))
     while game_info.test_level:
+        WIN.fill((255,255,255))
+        WIN.blit(PROCEDURAL_TRACK,(0,0))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_n:
+                if event.key == pygame.K_n: #generates new tracks
+                    PROCEDURAL_TRACK.fill((255,255,255))
                     pixel_coords, conv_points, num_conv_points = generate_hull()
                     while (num_conv_points % 2) != 0:
+                        PROCEDURAL_TRACK.fill((255,255,255))
                         pixel_coords, conv_points, num_conv_points = generate_hull()
 
+            # Place car 
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                    x, y = pygame.mouse.get_pos()
+                    start_pos = (x,y)
+
+        # Draw car at mouse position   
+        if not start_pos:
+            x, y = pygame.mouse.get_pos()
+            WIN.blit(CAR,(x,y))
+            text1 = guide_font.render("Now pick a starting position with left click",True,(0,0,0))
+
+            WIN.blit(text1,((WIDTH/2) - (text1.get_width()//2),50))
+        
+        if start_pos:
+            load_or_new_switch = False
+            if not game_info.new_generation:
+                load_or_new_switch = load_or_new(WIN)
+
+            game_info.exited = drift_normal(WIN,PROCEDURAL_TRACK,start_pos,load_or_new_switch)
+            if game_info.exited:
+                game_info.reset()
+            else:
+                run = False
 
 
-        WIN.fill((255,255,255))
+
+        
         for pixel in pixel_coords:
             pygame.draw.circle(WIN,(255,0,0),pixel,10)
 
         
-        
+        #draws the track
         for index in range(0,num_conv_points,2):
-            bezier(pixel_coords[conv_points[index%num_conv_points]], pixel_coords[conv_points[(index+1)%num_conv_points]], pixel_coords[conv_points[(index+2)%num_conv_points]])
+            bezier(pixel_coords[conv_points[index%num_conv_points]], pixel_coords[conv_points[(index+1)%num_conv_points]], pixel_coords[conv_points[(index+2)%num_conv_points]],PROCEDURAL_TRACK)
         
         for index in conv_points:
             pygame.draw.circle(WIN,(0,255,0),pixel_coords[index],10)
@@ -274,15 +342,29 @@ while run:
 
 
 
-#----------------LEVEL ONE------------------------------------#
+#------------------------------------LEVEL ONE------------------------------------#
     while game_info.level_one:
-        drift_normal(WIN,TRACK1,(660,895)) # choose between drift or normal car
+        load_or_new_switch = False
+        if not game_info.new_generation:
+            load_or_new_switch = load_or_new(WIN)
+        game_info.exited = drift_normal(WIN,TRACK1,(660,895),load_or_new_switch) # choose between drift or normal car
+        if game_info.exited:
+                game_info.reset()
+        else:
+            run = False
 
-#----------------LEVEL TWO------------------------------------#
+#------------------------------------LEVEL TWO------------------------------------#
     while game_info.level_two:
-        drift_normal(WIN,TRACK2,(700,987)) # choose between drift or normal car
+        load_or_new_switch = False
+        if not game_info.new_generation:
+            load_or_new_switch = load_or_new(WIN) # new == True, load == False
+        game_info.exited = drift_normal(WIN,TRACK2,(700,987),load_or_new_switch) # choose between drift or normal car
+        if game_info.exited:
+                game_info.reset()
+        else:
+            run = False
 
-#----------------LEVEL THREE------------------------------------#
+#------------------------------------LEVEL THREE------------------------------------#
     drawing = False
     placed_car = False
     track_done = False
@@ -292,11 +374,6 @@ while run:
     #level three
     while game_info.myo_level:
         clock.tick(FPS) #speed of rendering
-
-      # white background
-        
-
-
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -313,21 +390,19 @@ while run:
                 if event.button == 1:
                     drawing = False
 
+            # Place car
             if event.type == pygame.MOUSEBUTTONDOWN and track_done:
                 x, y = pygame.mouse.get_pos()
                 start_pos = (x,y)
 
-                
+            # Track done
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:
-                    x, y = pygame.mouse.get_pos()
-                    cars.append(place_car((x,y),TRACK_DRAWN))
-                    placed_car = True
                 if event.key == pygame.K_SPACE:
                     track_done = True
 
         WIN.fill((255, 255, 255))
         WIN.blit(TRACK_DRAWN, (0, 0))
+        # Guide Text
         if not track_done:
             text1 = guide_font.render("Draw with your mouse",True,(0,0,0))
             text2 = guide_font.render("if you are done press SPACEBAR",True,(0,0,0))
@@ -342,9 +417,7 @@ while run:
 
             WIN.blit(text1,((WIDTH/2) - (text1.get_width()//2),50))
 
-
-
-            
+ 
     # Draw while holding mouse
         for car in cars:
             if placed_car:
@@ -355,22 +428,16 @@ while run:
             pygame.draw.circle(TRACK_DRAWN, (0, 0, 0), (x, y), 50)
 
         if start_pos:
-            drift_normal(WIN,TRACK_DRAWN,start_pos)
+            load_or_new_switch = False
+            if not game_info.new_generation:
+                load_or_new_switch = load_or_new(WIN)
+            game_info.exited = drift_normal(WIN,TRACK_DRAWN,start_pos,load_or_new_switch)
+            if game_info.exited:
+                game_info.reset()
+            else:
+                run = False
             
-
-
-
         pygame.display.update()
-
-        """
-
-        simulation = Simulation(WIN,1000,TRACK2,CAR_SPEED,(690,975),CAR)
-
-        simulation.run_simulation()
-        """
-
-        
-
 
     
     pygame.display.update()

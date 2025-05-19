@@ -30,11 +30,11 @@ class AbstractCar:
         #drifting
         self.position = vec2(self.x, self.y)
         self.velocity = vec2(0, 0)
-        self.max_speed = 3.5
+        self.max_speed = 6
         self.forward = (0,0)
         self.direction = vec2(1, 0)  # Forward facing direction
         self.acceleration = 0.2
-        self.friction = 0.98
+        self.friction = 0.97
         self.drift_factor = 0.99# Lower = less drift, 1 = more drift
 
 

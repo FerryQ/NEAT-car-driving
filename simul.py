@@ -1,9 +1,11 @@
 import neat
+import neat.checkpoint
 import pygame
 from NN import NN
 import time
 import sys
 import numpy as np
+import button
 
 from car import NormalCar, DriftCar
 
@@ -23,7 +25,7 @@ colours = [
 
 
 class Simulation:
-    def __init__(self,win,max_generations, track, car_speed, start,car_img,best_car_img,drift_car=False,):
+    def __init__(self,win,max_generations, track, car_speed, start,car_img,best_car_img,drift_car=False,checkpoint = False):
         self.max_generations = max_generations
         self.win = win
         self.CURRENT_GENERATION = 0
@@ -40,6 +42,13 @@ class Simulation:
         self.best_index = 0
         self.my_font = pygame.font.SysFont('Comic Sans MS', 25)
         self.nns = [None] * 70
+        self.exited = False
+        self.checkpoint = checkpoint
+
+        exit_img = pygame.image.load("images/EXIT.png").convert_alpha()
+
+        self.exit_button = button.Button(1280,980,exit_img,1) 
+
 
         #Nodes and connections
 
@@ -89,13 +98,29 @@ class Simulation:
                                     neat.DefaultStagnation,
                                     config_path)
 
+        if self.checkpoint:
+            print("LOADED")
+            population = neat.Checkpointer.restore_checkpoint('neat-checkpoint-10')
+        else:
+            print("NOT LOADED")
+            population = neat.Population(config)
+
         # Create Population And Add Reporters
-        population = neat.Population(config)
         population.add_reporter(neat.StdOutReporter(True))
+        #population.add_reporter(neat.Checkpointer(generation_interval=5, filename_prefix='neat-checkpoint-'))
+
         self.stats = neat.StatisticsReporter()
         population.add_reporter(self.stats)
 
-        population.run(self.eval_genomes, 1000)
+
+        #population.run(self.eval_genomes, 1000)
+        try:
+            print(population)
+            population.run(self.eval_genomes, 1000)
+        except neat.CompleteExtinctionException:
+            neat.Checkpointer().save_checkpoint(config, population.population,population.species,10)
+            print("Stopped training early.")
+
 
     def draw(self,cars,timer):
         self.win.fill((0,0,0));
@@ -115,16 +140,12 @@ class Simulation:
         
 
         
-
-        #make_gate(REWARD_GATES)
-        
         # Display Info
         text = self.my_font.render("Generation: " + str(self.CURRENT_GENERATION), True, (255,255,255))
         text_rect = text.get_rect()
         text_rect.topleft = (1400, 540)
         self.win.blit(text, text_rect)
 
-        pygame.display.update()
 
 
         if self.stats.generation_statistics:
@@ -178,14 +199,7 @@ class Simulation:
             self.clock.tick(60)
             no_speed = 0
             alive_counter = 0 # how many cars are alive
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit(0)
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_n:
-                        run = False
-
+            # apply intputs for car and feed that into NN
             for i,car in enumerate(cars):
                 inputs = self.get_inputs_for_network(car)
                 outputs = nets[i].activate(inputs)
@@ -207,16 +221,9 @@ class Simulation:
                         self.best_fitness = genomes[i][1].fitness
                         self.best_nn = self.nns[i]
                         self.best_index = i
-                    else:
-                        self.best_nn = self.nns[self.best_index]
-
                     
-                
-                
 
             timer += 1
-
-            
 
             if timer > 1 and alive_counter == no_speed:
                 run = False
@@ -228,5 +235,20 @@ class Simulation:
                 run =  False
 
             self.draw(cars,timer)
+
+            if self.exit_button.draw(self.win):
+                    run = False
+                    self.exited = True
+                    raise neat.CompleteExtinctionException("User terminated training")
+
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit(0)
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_n:
+                        run = False
+                
+            pygame.display.update()
             
             
