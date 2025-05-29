@@ -1,3 +1,13 @@
-# Topic of your semestral work
+# NEAT Car Simulation
 
-Describe a function of developed application, necessary dependencies (e.g. utilize requirements.txt), how to start it, and last but not least how to run tests from CLI.
+Vizualizace genetického algoritmu **NEAT** pomocí 2D simulace autíček.
+
+Autíčka se snaží projet trať, zatímco se jejich chování evolučně zlepšuje díky NEAT (NeuroEvolution of Augmenting Topologies). Cílem je optimalizovat řízení bez přímého učení – pouze pomocí evoluce neuronových sítí.
+
+program spustíte:
+```bash
+python game.py
+
+Instalace závislostí:
+```bash
+pip install requirements.txt

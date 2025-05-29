@@ -4,10 +4,12 @@ from colours import Color as colours
 
 pygame.font.init()
 
+
 class NodeType:
     INPUT = 0
     HIDDEN = 1
     OUTPUT = 2
+
 
 class NN:
     INPUT_NEURONS = 5
@@ -19,8 +21,8 @@ class NN:
         self.nodes = []
         self.connections = []
 
-        input_labels = ["0°", "90°", "-90°", "30°", "-30°","speed","angle"]
-        output_labels = ["Left", "Right", "Accelerate", "Brake","Release"]
+        input_labels = ["0°", "90°", "-90°", "30°", "-30°", "speed", "angle"]
+        output_labels = ["Left", "Right", "Accelerate", "Brake", "Release"]
         node_id_list = []
 
         # Gather all node IDs
@@ -32,10 +34,18 @@ class NN:
         for i, input_id in enumerate(config.genome_config.input_keys):
             y = pos[1] + int(-input_offset / 2 + i * input_spacing)
             node = Node(
-                input_id, pos[0], y,
+                input_id,
+                pos[0],
+                y,
                 NodeType.INPUT,
-                [colours.GREEN_PALE, colours.GREEN, colours.DARK_GREEN_PALE, colours.DARK_GREEN],
-                input_labels[i], i
+                [
+                    colours.GREEN_PALE,
+                    colours.GREEN,
+                    colours.DARK_GREEN_PALE,
+                    colours.DARK_GREEN,
+                ],
+                input_labels[i],
+                i,
             )
             self.nodes.append(node)
             node_id_list.append(input_id)
@@ -48,10 +58,18 @@ class NN:
         for i, output_id in enumerate(config.genome_config.output_keys):
             y = pos[1] + int(-output_offset / 2 + i * output_spacing)
             node = Node(
-                output_id, output_x, y,
+                output_id,
+                output_x,
+                y,
                 NodeType.OUTPUT,
-                [colours.RED_PALE, colours.RED, colours.DARK_RED_PALE, colours.DARK_RED],
-                output_labels[i], i
+                [
+                    colours.RED_PALE,
+                    colours.RED,
+                    colours.DARK_RED_PALE,
+                    colours.DARK_RED,
+                ],
+                output_labels[i],
+                i,
             )
             self.nodes.append(node)
             hidden_node_ids.remove(output_id)
@@ -65,9 +83,16 @@ class NN:
         for i, hidden_id in enumerate(hidden_node_ids):
             y = self.pos[1] + int(-hidden_offset / 2 + i * hidden_spacing)
             node = Node(
-                hidden_id, hidden_x, y,
+                hidden_id,
+                hidden_x,
+                y,
                 NodeType.HIDDEN,
-                [colours.BLUE_PALE, colours.DARK_BLUE, colours.BLUE_PALE, colours.DARK_BLUE]
+                [
+                    colours.BLUE_PALE,
+                    colours.DARK_BLUE,
+                    colours.BLUE_PALE,
+                    colours.DARK_BLUE,
+                ],
             )
             self.nodes.append(node)
             node_id_list.append(hidden_id)
@@ -82,9 +107,16 @@ class NN:
             output_node = self.nodes[node_id_list.index(output_id)]
 
             # Only add valid connections between types
-            if (input_node.type == NodeType.INPUT and output_node.type in {NodeType.HIDDEN, NodeType.OUTPUT}) or \
-               (input_node.type == NodeType.HIDDEN and output_node.type == NodeType.OUTPUT):
-                self.connections.append(Connection(input_node, output_node, connection.weight))
+            if (
+                input_node.type == NodeType.INPUT
+                and output_node.type in {NodeType.HIDDEN, NodeType.OUTPUT}
+            ) or (
+                input_node.type == NodeType.HIDDEN
+                and output_node.type == NodeType.OUTPUT
+            ):
+                self.connections.append(
+                    Connection(input_node, output_node, connection.weight)
+                )
 
     def draw(self, screen: pygame.Surface):
         for c in self.connections:
@@ -92,16 +124,24 @@ class NN:
         for node in self.nodes:
             node.draw(screen)
 
-    
 
 class Node:
     RADIUS = 20
     SPACING = 5
     LAYER_SPACING = 100
     CONNECTION_WIDTH = 2
-    FONT = pygame.font.SysFont('Comic Sans MS', 15)
+    FONT = pygame.font.SysFont("Comic Sans MS", 15)
 
-    def __init__(self, id: int, x: int, y: int, type: NodeType, colours: list[colours], label: str = "", index: int = 0):
+    def __init__(
+        self,
+        id: int,
+        x: int,
+        y: int,
+        type: NodeType,
+        colours: list[colours],
+        label: str = "",
+        index: int = 0,
+    ):
         self.id = id
         self.x = x
         self.y = y
@@ -131,17 +171,20 @@ class Node:
             screen, (255,0,0), (self.x, self.y), Node.RADIUS - 2)
 
         """
-        pygame.draw.circle(
-            screen, colour_scheme[0], (self.x, self.y), Node.RADIUS)
-        pygame.draw.circle(
-            screen, colour_scheme[1], (self.x, self.y), Node.RADIUS - 2)
-        
+        pygame.draw.circle(screen, colour_scheme[0], (self.x, self.y), Node.RADIUS)
+        pygame.draw.circle(screen, colour_scheme[1], (self.x, self.y), Node.RADIUS - 2)
 
         if self.type != NodeType.HIDDEN:
             text = Node.FONT.render(self.label, 1, colours.WHITE)
-            screen.blit(text, (self.x + (self.type-1) * ((text.get_width()
-                            if not self.type else 0) + Node.RADIUS + 5), self.y - text.get_height()/2))
-        
+            screen.blit(
+                text,
+                (
+                    self.x
+                    + (self.type - 1)
+                    * ((text.get_width() if not self.type else 0) + Node.RADIUS + 5),
+                    self.y - text.get_height() / 2,
+                ),
+            )
 
     def get_colour(self):
         if self.type == NodeType.INPUT:
@@ -154,10 +197,22 @@ class Node:
 
         colour = [[0, 0, 0], [0, 0, 0]]
         for i in range(3):
-            colour[0][i] = int(ratio * (self.colours[1][i] - self.colours[3][i]) + self.colours[3][i]) % 256
-            colour[1][i] = int(ratio * (self.colours[0][i] -
-                            self.colours[2][i]) + self.colours[2][i]) % 256
+            colour[0][i] = (
+                int(
+                    ratio * (self.colours[1][i] - self.colours[3][i])
+                    + self.colours[3][i]
+                )
+                % 256
+            )
+            colour[1][i] = (
+                int(
+                    ratio * (self.colours[0][i] - self.colours[2][i])
+                    + self.colours[2][i]
+                )
+                % 256
+            )
         return colour
+
 
 class Connection:
     def __init__(self, input, output, wt):
@@ -168,8 +223,10 @@ class Connection:
     def draw(self, screen):
         colour = colours.GREEN if self.wt >= 0 else colours.RED
         width = int(abs(self.wt * Node.CONNECTION_WIDTH))
-        pygame.draw.line(screen, colour, (self.input.x + Node.RADIUS,
-                         self.input.y), (self.output.x - Node.RADIUS, self.output.y), width)
-
-
-        
+        pygame.draw.line(
+            screen,
+            colour,
+            (self.input.x + Node.RADIUS, self.input.y),
+            (self.output.x - Node.RADIUS, self.output.y),
+            width,
+        )

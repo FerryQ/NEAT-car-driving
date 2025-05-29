@@ -142,7 +142,8 @@ class Sensor:
             # Offset relative to mask
 
             # Make sure we're not out of bounds
-            if game_map.get_at((x, y)) == BORDER_COLOUR:
+
+            if 1400 > x > 0 and 1080 > y > 0 and game_map.get_at((x, y)) == BORDER_COLOUR:
                 self.collision_vec = (x,y)
                 return (x,y)  # Collision detected
 

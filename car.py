@@ -148,7 +148,7 @@ class AbstractCar:
     def collide2(self,game_map):
         # simple collision system checking if corner of the car overlaps the colour of the border (white) - this is faster than pixel perfect collision system with mask and etc.
         for point in self.get_rotated_corners():
-            if game_map.get_at((int(point[0]), int(point[1]))) == BORDER_COLOUR:
+            if  1400 < point[0] or point[0] < 0 or 1080 < point[1] or point[1] < 0 or game_map.get_at((int(point[0]), int(point[1]))) == BORDER_COLOUR:
                     self.alive = False
                     return (point[0], point[1])
 
