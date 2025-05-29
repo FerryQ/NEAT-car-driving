@@ -1,9 +1,9 @@
 import pygame
-from sensors import Sensor
+from .sensors import Sensor
 import math
 from pygame.math import Vector2 as vec2
-from utils import scale_image
-from utils import draw_rotate_car
+from .utils import scale_image
+from .utils import draw_rotate_car
 
 
 BORDER_COLOUR = (255, 255, 255) # border colour for collision

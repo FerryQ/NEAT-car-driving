@@ -1,13 +1,13 @@
 import neat
 import neat.checkpoint
 import pygame
-from NN import NN
+from neural_network.NN import NN
 import time
 import sys
 import numpy as np
-import button
+from utils import button
 
-from car import NormalCar, DriftCar
+from car_components.car import NormalCar, DriftCar
 
 colours = [
     (255, 0, 0),  # red
@@ -105,7 +105,7 @@ class Simulation:
 
         if self.checkpoint:
             print("LOADED")
-            population = neat.Checkpointer.restore_checkpoint("neat-checkpoint-10")
+            population = neat.Checkpointer.restore_checkpoint("SAVED_GENERATION")
         else:
             print("NOT LOADED")
             population = neat.Population(config)

@@ -7,7 +7,8 @@ Autíčka se snaží projet trať, zatímco se jejich chování evolučně zlep�
 program spustíte:
 ```bash
 python game.py
-
+```
 Instalace závislostí:
 ```bash
 pip install requirements.txt
+```

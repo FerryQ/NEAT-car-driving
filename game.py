@@ -1,15 +1,15 @@
 import pygame
 import os
-import button
+from utils import button
 import neat
 import sys
 import numpy as np
-import car_utils as cu
+from car_components import car_utils as cu
 from scipy.spatial import ConvexHull
-from simul import Simulation
-from utils import scale_image, draw_rotate_car, rotate_car
+from simulation.simul import Simulation
+from car_components.utils import scale_image, draw_rotate_car, rotate_car
 from pygame.math import Vector2 as vec2
-from car import NormalCar, DriftCar
+from car_components.car import NormalCar, DriftCar
 
 # window settings and initialization
 pygame.init()
@@ -56,12 +56,12 @@ load_generation_img = pygame.image.load("images/LOAD_GENERATION.png").convert_al
 
 
 # init buttons
-levels_button = button.Button(810, 526, levels_img, 1)
-level1_button = button.Button(350, 302, level1_img, 1)
-level2_button = button.Button(550, 302, level2_img, 1)
+levels_button = button.Button(WIDTH/2 - levels_img.get_width()/2, 700, levels_img, 1)
+level1_button = button.Button(WIDTH/2 - 2*level1_img.get_width() - 40, HEIGHT/2, level1_img, 1)
+level2_button = button.Button(WIDTH/2 - level2_img.get_width() + 20, HEIGHT/2, level2_img, 1)
 level3_button = button.Button(750, 302, level3_img, 1)
-myo_button = button.Button(950, 302, myo_img, 1)
-test_button = button.Button(1150, 302, procedural_img, 1)
+myo_button = button.Button(WIDTH/2 + 80, HEIGHT/2, myo_img, 1)
+test_button = button.Button(WIDTH/2 + procedural_img.get_width() + 140, HEIGHT/2, procedural_img, 1)
 drift_car_button = button.Button(
     760 - drift_car_img.get_width() / 2, 500, drift_car_img, 1
 )
@@ -266,12 +266,12 @@ def game_loop():
             if game_info.levels_menu:
                 WIN.fill((190, 190, 210))
                 # action level 1 button
-                WIN.blit(level1_track_img, (330, 160))
+                WIN.blit(level1_track_img, (WIDTH/2 - 2*level1_img.get_width() - 40 , HEIGHT/2 - 1.6*level1_img.get_height()))
                 if level1_button.draw(WIN):
                     game_info.started = True
                     game_info.level_one = True
                 # action level 2 button
-                WIN.blit(level2_track_img, (530, 160))
+                WIN.blit(level2_track_img, (WIDTH/2 - level2_img.get_width() + 20, HEIGHT/2 - 1.6*level2_img.get_height()))
                 if level2_button.draw(WIN):
                     game_info.started = True
                     game_info.level_two = True
@@ -325,8 +325,12 @@ def game_loop():
                 text1 = guide_font.render(
                     "Now pick a starting position with left click", True, (0, 0, 0)
                 )
+                text2 = guide_font.render(
+                    "Press N to generate new track", True, (0, 0, 0)
+                )
 
                 WIN.blit(text1, ((WIDTH / 2) - (text1.get_width() // 2), 50))
+                WIN.blit(text2, ((WIDTH / 2) - (text2.get_width() // 2), 60 + text1.get_height()))
 
             if start_pos:
                 load_or_new_switch = False

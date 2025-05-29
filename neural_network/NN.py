@@ -1,6 +1,6 @@
 import pygame
 import neat
-from colours import Color as colours
+from .colours import Color as colours
 
 pygame.font.init()
 

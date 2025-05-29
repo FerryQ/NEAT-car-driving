@@ -6,7 +6,7 @@ import math
 from car import NormalCar, DriftCar, AbstractCar
 from sensors import Sensor
 from game import Game_info 
-
+# @generated "mostly" gemini-pro: make unit tests
 pygame.init()
 
 @pytest.fixture
