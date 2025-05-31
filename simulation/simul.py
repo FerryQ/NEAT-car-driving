@@ -57,7 +57,7 @@ class Simulation:
 
         exit_img = pygame.image.load("images/EXIT.png").convert_alpha()
 
-        self.exit_button = button.Button(1280, 980, exit_img, 1)
+        self.exit_button = button.Button(1280, 0, exit_img, 1)
 
         # Nodes and connections
 
@@ -105,7 +105,7 @@ class Simulation:
 
         if self.checkpoint:
             print("LOADED")
-            population = neat.Checkpointer.restore_checkpoint("SAVED_GENERATION")
+            population = neat.Checkpointer.restore_checkpoint("neat-checkpoint-10")
         else:
             print("NOT LOADED")
             population = neat.Population(config)
