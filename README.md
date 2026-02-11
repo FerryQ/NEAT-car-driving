@@ -33,3 +33,6 @@ pip install -r requirements.txt
 ### Running
 
 After that, you can proceed to start the program by running `game.py`.
+
+
+![neat](karesfra.pdf)
