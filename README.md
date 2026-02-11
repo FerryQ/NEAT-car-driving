@@ -21,7 +21,7 @@ Python 3.7.0+
 Get a copy of the Project. Assuming you have git installed, open your Terminal and enter:
 
 ```bash
-git clone 'https://github.com/marcpinet/neat-cars.git'
+git clone 'https://github.com/FerryQ/NEAT-car-driving.git'
 ```
 
 To install all needed requirements run the following command in the project directory:
