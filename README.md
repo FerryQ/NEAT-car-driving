@@ -1,14 +1,37 @@
+
+https://github.com/user-attachments/assets/82fccc6a-ec70-4500-a1e9-85bfcee1aaff
 # NEAT Car Simulation
 
-Vizualizace genetického algoritmu **NEAT** pomocí 2D simulace autíček.
+Vizualization of genetic algorithm NEAT, with racing cars.
 
-Autíčka se snaží projet trať, zatímco se jejich chování evolučně zlepšuje díky NEAT (NeuroEvolution of Augmenting Topologies). Cílem je optimalizovat řízení bez přímého učení – pouze pomocí evoluce neuronových sítí.
 
-program spustíte:
+
+## Demo
+
+
+https://github.com/user-attachments/assets/aaf80820-30da-469b-9267-eaaa7e2fa3c6
+
+
+You can choose from 2 basic levels, make your own level, or generate one
+
+<img width="727" height="284" alt="image" src="https://github.com/user-attachments/assets/279914b0-0d6e-4a48-9bf9-b3dcc0f5201c" />
+
+## 💡 How to use
+
+Python 3.7.0+
+
+Get a copy of the Project. Assuming you have git installed, open your Terminal and enter:
+
 ```bash
-python game.py
+git clone 'https://github.com/marcpinet/neat-cars.git'
 ```
-Instalace závislostí:
+
+To install all needed requirements run the following command in the project directory:
+
 ```bash
-pip install requirements.txt
+pip install -r requirements.txt
 ```
+
+### Running
+
+After that, you can proceed to start the program by running `game.py`.
