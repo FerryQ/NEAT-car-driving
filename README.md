@@ -1,5 +1,3 @@
-
-https://github.com/user-attachments/assets/82fccc6a-ec70-4500-a1e9-85bfcee1aaff
 # NEAT Car Simulation
 
 Vizualization of genetic algorithm NEAT, with racing cars.
