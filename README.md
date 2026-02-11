@@ -34,5 +34,6 @@ pip install -r requirements.txt
 
 After that, you can proceed to start the program by running `game.py`.
 
+### More about NEAT
 
-![neat](karesfra.pdf)
+[karesfra.pdf](https://github.com/user-attachments/files/25245912/karesfra.pdf)
